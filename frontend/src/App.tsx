@@ -159,7 +159,12 @@ function PersonList() {
 
   return (
     <main className="app">
-      <h1 className="app-title">Manager</h1>
+      <header className="app-header">
+        <p className="eyebrow">
+          {totalCount} {totalCount === 1 ? "person" : "people"} · page {currentPage} of {totalPages}
+        </p>
+        <h1 className="app-title">People</h1>
+      </header>
 
       <div className="search-bar">
         <input
@@ -182,11 +187,19 @@ function PersonList() {
 
       <div className="card">
         <div className="card-toolbar">
+          <span className="card-meta">
+            {debouncedSearch ? `Filtered · ${totalCount} matches` : `${totalCount} total`}
+            {sortOption ? ` · sorted by ${sortOption.replace("-", "")}` : ""}
+          </span>
           <button onClick={createItem} className="btn btn-add">
             Add person
           </button>
         </div>
-        <ul className="person-list">{renderItems()}</ul>
+        {personList.length === 0 ? (
+          <div className="empty-state">No people found.</div>
+        ) : (
+          <ul className="person-list">{renderItems()}</ul>
+        )}
         <div className="pagination">
           <button
             className="page-btn"
