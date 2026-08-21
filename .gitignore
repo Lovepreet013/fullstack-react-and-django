@@ -1,0 +1,61 @@
+# ===== Python / Django (backend) =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Django static files (generated, not source)
+staticfiles/
+/static/
+
+# Environment variables
+.env
+.env.local
+*.env
+
+# ===== Node / React / Vite (frontend) =====
+node_modules/
+dist/
+dist-ssr/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite
+.vite/
+
+# ===== Editors / OS =====
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ===== Misc =====
+*.bak
+*.tmp
+
+# Personal notes / scratch files
+CHANGES.txt
+code.txt
