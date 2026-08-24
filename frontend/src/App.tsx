@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router";
+import { Routes, Route, Link, useNavigate, useLocation } from "react-router";
 import Modal from "./components/modal";
 import PersonDetail from "./components/person-detail";
 import "./index.css";
@@ -9,6 +9,7 @@ import Register from "./components/register";
 import Login from "./components/login";
 import PrivateRoute from "./components/private-route";
 import { logout } from "./auth";
+import { useIsAuthenticated } from "./useAuth";
 
 
 function PersonList() {
@@ -243,20 +244,43 @@ function PersonList() {
 
 function NavBar() {
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem("access");
+  const location = useLocation();
+  const isAuthenticated = useIsAuthenticated();
 
   const handleLogout = async () => {
     await logout();
     navigate("/login");
   };
 
-  if (!isAuthenticated) return null;
-
   return (
     <nav className="app-nav">
-      <button onClick={handleLogout} className="btn btn-logout">
-        Logout
-      </button>
+      <div className="app-nav-inner">
+        <Link to={isAuthenticated ? "/" : "/login"} className="nav-brand">
+          People
+        </Link>
+        <div className="nav-actions">
+          {isAuthenticated ? (
+            <button onClick={handleLogout} className="btn-logout">
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={`nav-link ${location.pathname === "/login" ? "nav-link-active" : ""}`}
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className={`nav-link ${location.pathname === "/register" ? "nav-link-active" : ""}`}
+              >
+                Register
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
     </nav>
   );
 }

@@ -1,4 +1,5 @@
 import api from "./api";
+import { notifyAuthChange } from "./useAuth";
 
 export async function logout() {
   const refresh = localStorage.getItem("refresh");
@@ -11,5 +12,6 @@ export async function logout() {
   } finally {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
+    notifyAuthChange();
   }
 }

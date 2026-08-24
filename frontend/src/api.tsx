@@ -23,11 +23,13 @@ api.interceptors.response.use(
         const refresh = localStorage.getItem('refresh');
         const res = await axios.post('http://localhost:8000/api/token/refresh/', { refresh });
         localStorage.setItem('access', res.data.access);
+        window.dispatchEvent(new Event("auth-change"));
         originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
         return api(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem('access');
         localStorage.removeItem('refresh');
+        window.dispatchEvent(new Event("auth-change"));
         window.location.href = '/login';
       }
     }
