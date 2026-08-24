@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Link } from "react-router";
+import { Routes, Route, Link, useNavigate } from "react-router";
 import Modal from "./components/modal";
 import PersonDetail from "./components/person-detail";
 import "./index.css";
-import axios from "axios";
 import type { Person } from "./types";
+import api from "./api"
+import Register from "./components/register";
+import Login from "./components/login";
+import PrivateRoute from "./components/private-route";
+import { logout } from "./auth";
+
 
 function PersonList() {
   const [activeItem, setActiveItem] = useState<Person>({
     first_name: "",
     last_name: "",
-    email: ""
+    email: "",
+    gender: "other",
+    hobbies: [],
   });
 
   const [personList, setPersonList] = useState<Person[]>([]);
@@ -24,8 +31,8 @@ function PersonList() {
   const PER_PAGE = 5;
 
   const refreshList = () => {
-    axios
-      .get("http://localhost:8000/api/persons/", {
+    api
+      .get("/persons/", {
         params: {
           page: currentPage,
           search: debouncedSearch || undefined,
@@ -87,8 +94,8 @@ function PersonList() {
 
   const handleSubmit = (item: Person) => {
     if (item.id) {
-      axios
-        .put(`http://localhost:8000/api/persons/${item.id}/`, item)
+      api
+        .put(`/persons/${item.id}/`, item)
         .then(() => {
           refreshList();
           toggle();
@@ -102,8 +109,8 @@ function PersonList() {
         });
       return;
     }
-    axios
-      .post("http://localhost:8000/api/persons/", item)
+    api
+      .post("/persons/", item)
       .then(() => {
         if (!debouncedSearch) {
           const newCount = totalCount + 1;
@@ -129,8 +136,8 @@ function PersonList() {
 
   const handleDelete = (item: Person) => {
     if (window.confirm("Are you sure you want to delete this person?")) {
-      axios
-        .delete(`http://localhost:8000/api/persons/${item.id}/`)
+      api
+        .delete(`/persons/${item.id}/`)
         .then(refreshList)
         .catch((err) => {
           const msg = err.response?.data
@@ -142,7 +149,7 @@ function PersonList() {
   };
 
   const createItem = () => {
-    const item = { first_name: "", last_name: "", email: "" };
+    const item: Person = { first_name: "", last_name: "", email: "", gender: "other", hobbies: [] };
     setActiveItem(item);
     setModal(!modal);
   };
@@ -233,12 +240,52 @@ function PersonList() {
   );
 }
 
+
+function NavBar() {
+  const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem("access");
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  if (!isAuthenticated) return null;
+
+  return (
+    <nav className="app-nav">
+      <button onClick={handleLogout} className="btn btn-logout">
+        Logout
+      </button>
+    </nav>
+  );
+}
+
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<PersonList />} />
-      <Route path="/persons/:id" element={<PersonDetail />} />
-    </Routes>
+    <>
+      <NavBar />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <PersonList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/persons/:id"
+          element={
+            <PrivateRoute>
+              <PersonDetail />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </>
   );
 }
 

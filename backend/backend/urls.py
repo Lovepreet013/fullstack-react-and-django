@@ -18,9 +18,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from todo.views import PersonView
+from accounts.views import RegisterView
+from accounts.views import RegisterView, LogoutView
 
 router = routers.DefaultRouter()
 router.register(r"persons", PersonView, basename="person")
 
-urlpatterns = [path("admin/", admin.site.urls), path("api/", include(router.urls))]
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("api/", include(router.urls)),
+    path("api/register/", RegisterView.as_view(), name="register"),
+    path("api/logout/", LogoutView.as_view(), name="logout"),
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+]

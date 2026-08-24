@@ -1,18 +1,20 @@
 from django.shortcuts import render
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, permissions
 from .serializers import PersonSerializer
 from .models import Person
 
 
-# Create your views here.
 class PersonView(viewsets.ModelViewSet):
     serializer_class = PersonSerializer
-    # explicit ordering so pagination is stable (newest id at the end, page 1 = oldest)
+    permission_classes = [permissions.IsAuthenticated]
 
-    queryset = Person.objects.all().order_by("id")
-
-    # Server-side search + ordering: enables ?search= and ?ordering= together with pagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["first_name", "last_name"]
     ordering_fields = ["first_name", "last_name", "id"]
-    ordering = ["id"]  # default when user has not selected a sort option
+    ordering = ["id"]
+
+    def get_queryset(self):
+        return Person.objects.filter(owner=self.request.user).order_by("id")
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
