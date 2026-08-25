@@ -1,15 +1,21 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, Navigate } from "react-router";
 import api from "../api";
-import { notifyAuthChange } from "../useAuth";
+import { notifyAuthChange, useIsAuthenticated } from "../useAuth";
+import Auth0LoginButton from "./auth0-login-button";
 
 export default function Register() {
+  const isAuthenticated = useIsAuthenticated();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +100,12 @@ export default function Register() {
               {loading ? "Creating..." : "Create account"}
             </button>
           </form>
+
+          <div className="auth-divider">
+            <span>or</span>
+          </div>
+
+          <Auth0LoginButton mode="register" onError={setError} />
 
           <p className="auth-footer">
             Already have an account? <Link to="/login">Login</Link>

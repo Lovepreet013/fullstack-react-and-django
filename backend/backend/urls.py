@@ -22,7 +22,7 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from todo.views import PersonView
-from accounts.views import RegisterView, LogoutView, ProfileView
+from accounts.views import Auth0AuthView, RegisterView, LogoutView, ProfileView
 
 router = routers.DefaultRouter()
 router.register(r"persons", PersonView, basename="person")
@@ -33,6 +33,7 @@ urlpatterns = [
     path("api/register/", RegisterView.as_view(), name="register"),
     path("api/logout/", LogoutView.as_view(), name="logout"),
     path("api/profile/", ProfileView.as_view(), name="profile"),
+    path("api/auth/auth0/", Auth0AuthView.as_view(), name="auth0-auth"),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]

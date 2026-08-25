@@ -2,6 +2,20 @@ from rest_framework import serializers
 from .models import User
 
 
+class Auth0Serializer(serializers.Serializer):
+    credential = serializers.CharField(required=False, allow_blank=False)
+    id_token = serializers.CharField(required=False, allow_blank=False)
+
+    def validate(self, attrs):
+        token = attrs.get("credential") or attrs.get("id_token")
+        if not token:
+            raise serializers.ValidationError(
+                {"credential": "Auth0 credential (id_token) is required."}
+            )
+        attrs["token"] = token
+        return attrs
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
 

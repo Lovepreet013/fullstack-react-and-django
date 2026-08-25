@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
-import { Routes, Route, Link, useNavigate, useLocation } from "react-router";
+import { Routes, Route, Link, useNavigate, useLocation, Navigate } from "react-router";
 import Modal from "./components/modal";
 import PersonDetail from "./components/person-detail";
 import "./index.css";
@@ -12,6 +12,7 @@ import PrivateRoute from "./components/private-route";
 import Profile from "./components/profile";
 import { logout } from "./auth";
 import { useIsAuthenticated } from "./useAuth";
+import { useAuth0 } from "@auth0/auth0-react";
 import type { User } from "./types";
 
 
@@ -249,10 +250,24 @@ function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = useIsAuthenticated();
+  const { logout: auth0Logout } = useAuth0();
+  const auth0Configured = !!(
+    import.meta.env.VITE_AUTH0_DOMAIN && import.meta.env.VITE_AUTH0_CLIENT_ID
+  );
   const [me, setMe] = useState<User | null>(null);
 
   const handleLogout = async () => {
     await logout();
+    if (auth0Configured) {
+      try {
+        // Clear Auth0 SDK session (cache + cookies) WITHOUT redirecting to Auth0.
+        // openUrl:false skips the /v2/logout redirect and makes the provider
+        // dispatch LOGOUT so isAuthenticated becomes false (no silent re-login).
+        await auth0Logout({ openUrl: false });
+      } catch {
+        // ignore — Auth0 session may already be cleared or provider not mounted
+      }
+    }
     navigate("/login");
   };
 
@@ -339,6 +354,7 @@ function App() {
     <>
       <NavBar />
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route

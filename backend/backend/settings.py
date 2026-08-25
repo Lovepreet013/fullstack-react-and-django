@@ -10,11 +10,36 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file for local dev (backend/.env) - works even without python-dotenv
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / ".env")
+except ImportError:
+    # Fallback manual parser if python-dotenv not installed in this venv (e.g., dar)
+    _env_path = BASE_DIR / ".env"
+    if _env_path.exists():
+        try:
+            for line in _env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip('"').strip("'")
+                if k and k not in os.environ:
+                    os.environ[k] = v
+        except Exception:
+            pass
+except Exception:
+    pass
 
 
 # Quick-start development settings - unsuitable for production
@@ -33,6 +58,11 @@ ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_WHITELIST = ("http://localhost:3000", "http://localhost:5173")
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]
 
+# Auth0 (hosted Google without direct Google Cloud Console)
+AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN", "")  # e.g. dev-xxxx.us.auth0.com
+AUTH0_AUDIENCE = os.getenv("AUTH0_AUDIENCE", "")  # optional API identifier, if empty will accept client ID audience
+AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID", "")  # frontend client ID, used as id_token audience fallback
+
 # REST Framework settings
 # Server-side pagination: 5 persons per page (?page=N)
 REST_FRAMEWORK = {
@@ -43,8 +73,6 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
-
-from datetime import timedelta
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
