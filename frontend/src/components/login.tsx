@@ -19,7 +19,7 @@ export default function Login() {
       localStorage.setItem("access", res.data.access);
       localStorage.setItem("refresh", res.data.refresh);
       notifyAuthChange();
-      navigate("/");
+      navigate("/dashboard");
     } catch {
       setError("Invalid username or password");
     } finally {

@@ -22,7 +22,7 @@ export default function Register() {
       localStorage.setItem("access", res.data.access);
       localStorage.setItem("refresh", res.data.refresh);
       notifyAuthChange();
-      navigate("/");
+      navigate("/dashboard");
     } catch (err: unknown) {
       const msg =
         err !== null &&

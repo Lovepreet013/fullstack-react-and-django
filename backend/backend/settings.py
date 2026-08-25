@@ -26,11 +26,12 @@ SECRET_KEY = "django-insecure-+)3)d^ov&3$$@r2oq#j30k@v3(p3+zg+-7u01bl@k-_vy6%a^+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # White listing the localhost:3000 port
 # for React
 CORS_ORIGIN_WHITELIST = ("http://localhost:3000", "http://localhost:5173")
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://localhost:5173"]
 
 # REST Framework settings
 # Server-side pagination: 5 persons per page (?page=N)
@@ -71,6 +72,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -78,7 +80,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "backend.urls"
@@ -147,6 +148,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = "static/"
+
+# Media files (user avatars)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 
 # Email

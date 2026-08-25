@@ -46,7 +46,7 @@ function PersonDetail() {
             </span>
           </p>
         </div>
-        <Link to="/" className="btn btn-back">
+        <Link to="/dashboard" className="btn btn-back">
           Back to list
         </Link>
       </div>

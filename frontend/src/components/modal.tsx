@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import "../index.css";
 import type { Person, Gender, Hobby } from "../types";
@@ -32,10 +33,8 @@ function CustomModal({ activeItem: initialItem, toggle, onSave }: CustomModalPro
   const [triedSubmit, setTriedSubmit] = useState(false);
 
   useEffect(() => {
-    (() => {
-      setActiveItem(normalize(initialItem));
-    })()
-    
+    setActiveItem(normalize(initialItem));
+    setTriedSubmit(false);
   }, [initialItem]);
 
   // changes handler for text/email/radio inputs
@@ -55,12 +54,26 @@ function CustomModal({ activeItem: initialItem, toggle, onSave }: CustomModalPro
 
   const handleSave = () => {
     setTriedSubmit(true);
-    if (!activeItem.gender) return;
-    if (!activeItem.hobbies || activeItem.hobbies.length === 0) return;
-    if (!activeItem.first_name.trim() || !activeItem.last_name.trim() || !activeItem.email.trim()) return;
-    onSave(activeItem);
+    const hasFirstName = activeItem.first_name.trim().length > 0;
+    const hasLastName = activeItem.last_name.trim().length > 0;
+    const hasEmail = activeItem.email.trim().length > 0;
+    const emailValid = hasEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(activeItem.email.trim());
+    const hasGender = !!activeItem.gender;
+    const hasHobbies = !!activeItem.hobbies && activeItem.hobbies.length > 0;
+
+    if (!hasFirstName || !hasLastName || !hasEmail || !emailValid || !hasGender || !hasHobbies) return;
+    onSave({ ...activeItem, first_name: activeItem.first_name.trim(), last_name: activeItem.last_name.trim(), email: activeItem.email.trim() });
   };
 
+  const firstNameError = triedSubmit && !activeItem.first_name.trim() ? "First name is required" : "";
+  const lastNameError = triedSubmit && !activeItem.last_name.trim() ? "Last name is required" : "";
+  const emailError = (() => {
+    if (!triedSubmit) return "";
+    const email = activeItem.email.trim();
+    if (!email) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Enter a valid email address";
+    return "";
+  })();
   const genderError = triedSubmit && !activeItem.gender ? "Gender is required" : "";
   const hobbiesError = triedSubmit && (!activeItem.hobbies || activeItem.hobbies.length === 0) ? "Select at least one hobby" : "";
 
@@ -76,41 +89,50 @@ function CustomModal({ activeItem: initialItem, toggle, onSave }: CustomModalPro
         </div>
 
         <div className="modal-body">
-          <form onSubmit={(e) => e.preventDefault()}>
+          <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} noValidate>
             <div className="form-group">
               <label htmlFor="first_name">First Name *</label>
               <input
                 type="text"
+                id="first_name"
                 name="first_name"
                 value={activeItem.first_name}
                 onChange={handleChange}
                 placeholder="Enter First Name"
                 required
+                aria-invalid={!!firstNameError}
               />
+              {firstNameError ? <span className="field-error">{firstNameError}</span> : null}
             </div>
 
             <div className="form-group">
               <label htmlFor="last_name">Last Name *</label>
               <input
                 type="text"
+                id="last_name"
                 name="last_name"
                 value={activeItem.last_name}
                 onChange={handleChange}
                 placeholder="Enter Last Name"
                 required
+                aria-invalid={!!lastNameError}
               />
+              {lastNameError ? <span className="field-error">{lastNameError}</span> : null}
             </div>
 
             <div className="form-group">
               <label htmlFor="email">Email *</label>
               <input
                 type="email"
+                id="email"
                 name="email"
                 value={activeItem.email}
                 onChange={handleChange}
                 placeholder="Enter Email"
                 required
+                aria-invalid={!!emailError}
               />
+              {emailError ? <span className="field-error">{emailError}</span> : null}
             </div>
 
             <div className="form-group">

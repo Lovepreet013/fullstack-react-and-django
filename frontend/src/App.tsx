@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import { Routes, Route, Link, useNavigate, useLocation } from "react-router";
 import Modal from "./components/modal";
@@ -8,8 +9,10 @@ import api from "./api"
 import Register from "./components/register";
 import Login from "./components/login";
 import PrivateRoute from "./components/private-route";
+import Profile from "./components/profile";
 import { logout } from "./auth";
 import { useIsAuthenticated } from "./useAuth";
+import type { User } from "./types";
 
 
 function PersonList() {
@@ -68,7 +71,7 @@ function PersonList() {
   const renderItems = () => {
     return personList.map((item) => (
       <li key={item.id} className="person-item">
-        <Link to={`/persons/${item.id}`} className="person-name" title={item.email}>
+        <Link to={`/dashboard/persons/${item.id}`} className="person-name" title={item.email}>
           {item.first_name} {item.last_name}
         </Link>
         <span className="person-actions">
@@ -246,23 +249,69 @@ function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const isAuthenticated = useIsAuthenticated();
+  const [me, setMe] = useState<User | null>(null);
 
   const handleLogout = async () => {
     await logout();
     navigate("/login");
   };
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setMe(null);
+      return;
+    }
+    let cancelled = false;
+    const fetchMe = () => {
+      api
+        .get("profile/")
+        .then((res) => {
+          if (!cancelled) setMe(res.data);
+        })
+        .catch(() => {
+          if (!cancelled) setMe(null);
+        });
+    };
+    fetchMe();
+    const onAuthChange = () => fetchMe();
+    window.addEventListener("auth-change", onAuthChange);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("auth-change", onAuthChange);
+    };
+  }, [isAuthenticated]);
+
+  const avatarSrc = me?.avatar_url || me?.avatar || null;
+  const displayAvatar = avatarSrc
+    ? avatarSrc.startsWith("http") || avatarSrc.startsWith("blob:")
+      ? avatarSrc
+      : `http://localhost:8000${avatarSrc}`
+    : null;
+
   return (
     <nav className="app-nav">
       <div className="app-nav-inner">
-        <Link to={isAuthenticated ? "/" : "/login"} className="nav-brand">
+        <Link to={isAuthenticated ? "/dashboard" : "/login"} className="nav-brand">
           People
         </Link>
         <div className="nav-actions">
           {isAuthenticated ? (
-            <button onClick={handleLogout} className="btn-logout">
-              Logout
-            </button>
+            <>
+              <Link to="/profile" className="nav-avatar-link" title="Profile">
+                {displayAvatar ? (
+                  <img src={displayAvatar} alt={me?.username || "avatar"} className="nav-avatar" />
+                ) : (
+                  <span className="nav-avatar nav-avatar-fallback" aria-hidden>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7">
+                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </span>
+                )}
+              </Link>
+              <button onClick={handleLogout} className="btn-logout">
+                Logout
+              </button>
+            </>
           ) : (
             <>
               <Link
@@ -293,7 +342,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
-          path="/"
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
           element={
             <PrivateRoute>
               <PersonList />
@@ -301,7 +358,7 @@ function App() {
           }
         />
         <Route
-          path="/persons/:id"
+          path="/dashboard/persons/:id"
           element={
             <PrivateRoute>
               <PersonDetail />

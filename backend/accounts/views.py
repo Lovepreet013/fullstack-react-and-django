@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
-from .serializers import RegisterSerializer
+from rest_framework import generics, permissions, parsers
+from .serializers import RegisterSerializer, UserDetailSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -24,3 +24,12 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserDetailSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
+
+    def get_object(self):
+        return self.request.user
