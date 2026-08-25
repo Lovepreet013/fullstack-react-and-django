@@ -125,5 +125,3 @@ No `.env` needed – API base is `http://localhost:8000/api/` in `src/api.tsx:4`
 | `backend/` | `python manage.py check`, `makemigrations`, `migrate`, `shell`, `runserver 8000` |
 | `frontend/` | `npm run dev` (5173), `build`, `lint`, `preview` |
 
-## License
-MIT – customize as needed.
